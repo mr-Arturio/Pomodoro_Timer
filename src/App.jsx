@@ -4,21 +4,28 @@ export default function PomodoroTimer() {
   const [timeLeft, setTimeLeft] = useState(1500); // 25 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);
   const [isWorkSession, setIsWorkSession] = useState(true);
-  const [useFiveMinuteBreak, setUseFiveMinuteBreak] = useState(true);
+  const [workDuration, setWorkDuration] = useState(1500); // 25 minutes
+  const [breakDuration, setBreakDuration] = useState(300); // 5 minutes
+  const [completedWorkSessions, setCompletedWorkSessions] = useState(0);
+  const [completedBreakSessions, setCompletedBreakSessions] = useState(0);
   const intervalRef = useRef(null);
 
   useEffect(() => {
     if (timeLeft === 0) {
       if (isWorkSession) {
         alert("Work session complete! Time for a break.");
-        setTimeLeft(useFiveMinuteBreak ? 300 : 60); // 5 minutes or 1 minute break in seconds
+        setCompletedWorkSessions(prev => prev + 1);
+        setTimeLeft(breakDuration);
       } else {
         alert("Break over! Time to work.");
-        setTimeLeft(1500); // 25 minutes work session in seconds
+        setCompletedBreakSessions(prev => prev + 1);
+        setTimeLeft(workDuration);
       }
       setIsWorkSession(!isWorkSession);
+      setIsRunning(false);
+      clearInterval(intervalRef.current);
     }
-  }, [timeLeft, isWorkSession, useFiveMinuteBreak]);
+  }, [timeLeft, isWorkSession, breakDuration, workDuration]);
 
   function handleStart() {
     if (!isRunning) {
@@ -39,26 +46,38 @@ export default function PomodoroTimer() {
   function handleReset() {
     clearInterval(intervalRef.current);
     setIsRunning(false);
-    setTimeLeft(isWorkSession ? 1500 : useFiveMinuteBreak ? 300 : 60);
-  }
-
-  function handleCheckboxChange() {
-    setUseFiveMinuteBreak(!useFiveMinuteBreak);
+    setTimeLeft(isWorkSession ? workDuration : breakDuration);
   }
 
   function handleStartBreak() {
     clearInterval(intervalRef.current);
     setIsWorkSession(false);
-    setTimeLeft(useFiveMinuteBreak ? 300 : 60);
+    setTimeLeft(breakDuration);
     handleStart();
   }
 
   function handleStartWork() {
     clearInterval(intervalRef.current);
     setIsWorkSession(true);
-    setTimeLeft(1500);
+    setTimeLeft(workDuration);
     handleStart();
   }
+
+  const handleWorkDurationChange = (e) => {
+    const newDuration = Number(e.target.value) * 60;
+    setWorkDuration(newDuration);
+    if (isWorkSession) {
+      setTimeLeft(newDuration);
+    }
+  };
+
+  const handleBreakDurationChange = (e) => {
+    const newDuration = Number(e.target.value) * 60;
+    setBreakDuration(newDuration);
+    if (!isWorkSession) {
+      setTimeLeft(newDuration);
+    }
+  };
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -66,10 +85,10 @@ export default function PomodoroTimer() {
   return (
     <div className="timer-container">
       <h1>{isWorkSession ? 'Work' : 'Break'} Time Left: {`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`}</h1>
-      <button onClick={handleStart} disabled={isRunning}>
+      <button className="start" onClick={handleStart} disabled={isRunning}>
         Start
       </button>
-      <button onClick={handleStop} disabled={!isRunning}>
+      <button className="stop" onClick={handleStop} disabled={!isRunning}>
         Stop
       </button>
       <button onClick={handleReset}>
@@ -86,13 +105,29 @@ export default function PomodoroTimer() {
       )}
       <div>
         <label>
+          Work Duration:
           <input
-            type="checkbox"
-            checked={useFiveMinuteBreak}
-            onChange={handleCheckboxChange}
-          />
-          Use 5-minute breaks
+            type="number"
+            value={workDuration / 60}
+            onChange={handleWorkDurationChange}
+            min="1"
+          /> minutes
         </label>
+      </div>
+      <div>
+        <label>
+          Break Duration:
+          <input
+            type="number"
+            value={breakDuration / 60}
+            onChange={handleBreakDurationChange}
+            min="1"
+          /> minutes
+        </label>
+      </div>
+      <div>
+        <p>Completed Work Sessions: {completedWorkSessions}</p>
+        <p>Completed Break Sessions: {completedBreakSessions}</p>
       </div>
     </div>
   );
