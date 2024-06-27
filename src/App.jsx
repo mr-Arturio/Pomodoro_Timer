@@ -46,6 +46,20 @@ export default function PomodoroTimer() {
     setUseFiveMinuteBreak(!useFiveMinuteBreak);
   }
 
+  function handleStartBreak() {
+    clearInterval(intervalRef.current);
+    setIsWorkSession(false);
+    setTimeLeft(useFiveMinuteBreak ? 300 : 60);
+    handleStart();
+  }
+
+  function handleStartWork() {
+    clearInterval(intervalRef.current);
+    setIsWorkSession(true);
+    setTimeLeft(1500);
+    handleStart();
+  }
+
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
@@ -61,6 +75,15 @@ export default function PomodoroTimer() {
       <button onClick={handleReset}>
         Reset
       </button>
+      {isWorkSession ? (
+        <button onClick={handleStartBreak}>
+          Start Break
+        </button>
+      ) : (
+        <button onClick={handleStartWork}>
+          Start Work
+        </button>
+      )}
       <div>
         <label>
           <input
