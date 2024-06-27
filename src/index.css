@@ -59,4 +59,12 @@ ul {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+label {
+  display: block;
+  margin-top: 20px;
+  font-size: 16px;
+}
 
+input[type="checkbox"] {
+  margin-right: 10px;
+}

@@ -4,20 +4,21 @@ export default function PomodoroTimer() {
   const [timeLeft, setTimeLeft] = useState(1500); // 25 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);
   const [isWorkSession, setIsWorkSession] = useState(true);
+  const [useFiveMinuteBreak, setUseFiveMinuteBreak] = useState(true);
   const intervalRef = useRef(null);
 
   useEffect(() => {
     if (timeLeft === 0) {
       if (isWorkSession) {
         alert("Work session complete! Time for a break.");
-        setTimeLeft(300); // 5 minutes break in seconds
+        setTimeLeft(useFiveMinuteBreak ? 300 : 60); // 5 minutes or 1 minute break in seconds
       } else {
         alert("Break over! Time to work.");
         setTimeLeft(1500); // 25 minutes work session in seconds
       }
       setIsWorkSession(!isWorkSession);
     }
-  }, [timeLeft, isWorkSession]);
+  }, [timeLeft, isWorkSession, useFiveMinuteBreak]);
 
   function handleStart() {
     if (!isRunning) {
@@ -38,24 +39,38 @@ export default function PomodoroTimer() {
   function handleReset() {
     clearInterval(intervalRef.current);
     setIsRunning(false);
-    setTimeLeft(isWorkSession ? 1500 : 300);
+    setTimeLeft(isWorkSession ? 1500 : useFiveMinuteBreak ? 300 : 60);
+  }
+
+  function handleCheckboxChange() {
+    setUseFiveMinuteBreak(!useFiveMinuteBreak);
   }
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
   return (
-    <>
+    <div className="timer-container">
       <h1>{isWorkSession ? 'Work' : 'Break'} Time Left: {`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`}</h1>
-      <button onClick={handleStart}>
+      <button onClick={handleStart} disabled={isRunning}>
         Start
       </button>
-      <button onClick={handleStop}>
+      <button onClick={handleStop} disabled={!isRunning}>
         Stop
       </button>
       <button onClick={handleReset}>
         Reset
       </button>
-    </>
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            checked={useFiveMinuteBreak}
+            onChange={handleCheckboxChange}
+          />
+          Use 5-minute breaks
+        </label>
+      </div>
+    </div>
   );
 }
